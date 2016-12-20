@@ -3,7 +3,6 @@ package demo;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -12,6 +11,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.*;
 import javax.xml.bind.JAXBException;
@@ -30,33 +31,24 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import generated.CDXML;
-import utils.BoundingBox;
-import utils.Point;
+import cdxml.dom.B;
+import cdxml.dom.CDXML;
+import cdxml.dom.Fragment;
+import cdxml.dom.N;
+import cdxml.utils.BoundingBox;
+import cdxml.utils.Line;
+import common.utils.Point;
+import svg.utils.Path;
 
 
 public class SwingDemo{
 	
     // The frame.
     protected JFrame frame;
-//    class myFrame extends JFrame{
-//    	public myFrame(String title){
-//    		this.setTitle(title);
-//    	}
-//    	
-//    	@Override
-//    	public void paint(Graphics g) 
-//        {
-//    		super.paint(g);
-//    		g.drawRect((int)Double.parseDouble(boundingBox.getStartPoint().getX()), (int)Double.parseDouble(boundingBox.getStartPoint().getY()), 
-//    				(int)Double.parseDouble(boundingBox.getEndPoint().getX()),(int)Double.parseDouble(boundingBox.getEndPoint().getY()));
-//        }
-//    }
-//    
-//    protected myFrame frame;
 
     // The "Load" button, which displays up a file chooser upon clicking.
-    protected JButton button = new JButton("Load...");
+    protected JButton buttonSVG = new JButton("LoadSVG");
+    protected JButton buttonCDXML = new JButton("LoadCDXML");
 
     // The status label.
     protected JLabel label = new JLabel();
@@ -73,14 +65,15 @@ public class SwingDemo{
         final JPanel panel = new JPanel(new BorderLayout());
 
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        p.add(button);
+        p.add(buttonSVG);
         p.add(label);
+        p.add(buttonCDXML);
 
         panel.add("North", p);
         panel.add("Center", svgCanvas);
 
         // Set the button action.
-        button.addActionListener(new ActionListener() {
+        buttonSVG.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
                 JFileChooser fc = new JFileChooser(".");
                 int choice = fc.showOpenDialog(panel);
@@ -131,29 +124,17 @@ public class SwingDemo{
 	private static CDXML cdxml;
 	private static BoundingBox boundingBox;
 	private static Document svg;
+	private static List<Path> pathList = new ArrayList<Path>();
+	private static String CDXML_DOM_N = "cdxml.dom.N";
+	private static String CDXML_DOM_B = "cdxml.dom.B";
 	
-//	@Override
-//	public void paint(Graphics g){
-//		super.paint(g);
-//		g.drawRect((int)Double.parseDouble(boundingBox.getStartPoint().getX()), (int)Double.parseDouble(boundingBox.getStartPoint().getY()), 
-//				(int)Double.parseDouble(boundingBox.getEndPoint().getX()),(int)Double.parseDouble(boundingBox.getEndPoint().getY()));
-//		
-//	}
+	// Attribute in CDXML
+	private static int NCount = 6;
+	private static List<Object> NList = null;
+	private static List<Point> PList = new ArrayList<Point>();
+	private static List<Line> LList = new ArrayList<Line>();
 	
-	private static void configure(){
-        if(cdxml == null) return;
-        // Configure BoundingBox
-        if(cdxml.getBoundingBox() != null){
-            
-            String[] boundingBoxData =  cdxml.getBoundingBox().split(" ");
-           
-            Point startpoint = new Point(boundingBoxData[0], boundingBoxData[1]);
-            Point endpoint = new Point(boundingBoxData[2], boundingBoxData[3]);
-            
-            boundingBox = new BoundingBox(startpoint, endpoint);
-        }
-	}
-	
+
 	private static void readCDXML(String path){
 		try {
 			cdxml = CDXMLTest.readString(CDXML.class, path);
@@ -178,7 +159,84 @@ public class SwingDemo{
 		}
 	}
 	
-	private static void printNote(NodeList nodeList) {
+	private static void validate(){
+		if(pathList != null && PList != null){
+			System.out.println("Validate points:");
+			for(int i=0;i<pathList.size();i++){
+				Path p = pathList.get(i);
+				boolean right_start = false,right_end = false;
+				for(int j=0;j<PList.size();j++){
+					if(p.getPointList().size()>=Path.POINT_COUNT){
+						if((p.getPointList().get(1).getX() == PList.get(j).getX()) && (p.getPointList().get(1).getY() == PList.get(j).getY())){
+							right_start = true;
+						}
+						if((p.getPointList().get(4).getX() == PList.get(j).getX()) && (p.getPointList().get(4).getY() == PList.get(j).getY())){
+							right_end = true;						
+						}
+						if(right_start && right_end){
+							System.out.println(p.getPointList().get(1).getX()+"," + p.getPointList().get(1).getY()
+									+ "-" + p.getPointList().get(4).getX()+","+p.getPointList().get(4).getY());
+							right_start = false;
+							right_end = false;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	
+	private static void parseCDXML(){
+        if(cdxml == null) return;
+
+        // Configure BoundingBox
+//        if(cdxml.getBoundingBox() != null){
+//            
+//            String[] boundingBoxData =  cdxml.getBoundingBox().split(" ");
+//           
+//            Point startpoint = new Point(Double.parseDouble(boundingBoxData[0]), Double.parseDouble(boundingBoxData[1]));
+//            Point endpoint = new Point(Double.parseDouble(boundingBoxData[2]), Double.parseDouble(boundingBoxData[3]));
+//            
+//            boundingBox = new BoundingBox(startpoint, endpoint);
+//        }
+        
+        // Set N List in CDXML
+     	List<Object> fragmentlist = cdxml.getPage().get(0).getTOrFragmentOrGroup();
+     	Fragment f = Fragment.class.cast(fragmentlist.get(0));
+     	NList = f.getNOrBOrT();
+     	NCount = NList.size();
+     		
+     	// Set Point List and Line List
+     	for(int i=0;i<NCount;i++){
+     		String curName = NList.get(i).getClass().getName();
+     		if(curName == CDXML_DOM_N){
+     			Point curP = new Point();
+     			N n = N.class.cast(NList.get(i));
+     			String p = n.getP();
+     			String[] str = p.split(" ",2);
+     			if(str.length >= 2){
+     				curP = new Point(n.getId(), Double.parseDouble(str[0]), Double.parseDouble(str[1]));
+     			}
+     			PList.add(curP);
+     		}else if(curName == CDXML_DOM_B){
+     			B b = B.class.cast(NList.get(i));
+     			Line line = new Line();
+     			for(int j=0;j<PList.size();j++){
+     				if(b.getB().equals(PList.get(j).getId())){
+     					line.setStartPoint(PList.get(j));
+     				}else if(b.getE().equals(PList.get(j).getId())){
+     					line.setEndPoint(PList.get(j));
+     				}
+     			}
+     			if(line.isValid()){
+     				LList.add(line);
+     			}
+     		}
+     	}
+	}
+	
+	
+	private static void parseSVG(NodeList nodeList) {
 
 	    for (int count = 0; count < nodeList.getLength(); count++) {
 
@@ -198,6 +256,15 @@ public class SwingDemo{
 				for (int i = 0; i < nodeMap.getLength(); i++) {
 
 					Node node = nodeMap.item(i);
+					if(node.getNodeName() == "d"){
+						Path path = new Path(node.getNodeValue());
+						pathList.add(path);
+						System.out.println("**************path**************");
+					}
+					if(node.getNodeName() == "x1"){
+						System.out.println("**************line**************");
+					}
+					
 					System.out.println("attr name : " + node.getNodeName());
 					System.out.println("attr value : " + node.getNodeValue());
 
@@ -207,7 +274,7 @@ public class SwingDemo{
 
 			if (tempNode.hasChildNodes()) {
 				// loop again if has child nodes
-				printNote(tempNode.getChildNodes());
+				parseSVG(tempNode.getChildNodes());
 			}
 
 			System.out.println("Node Name =" + tempNode.getNodeName() + " [CLOSE]");
@@ -219,53 +286,43 @@ public class SwingDemo{
 
 	public static void main(String[] args){
 		// Read CDXML
-		readCDXML("C:\\Users\\LIUJF\\Desktop\\CDXMLTest\\cdxml2svg_Result\\ValidResult\\Brackets_Testing Data\\Corss bond data file\\cross_bond_1.cdxml");
-		readSVG("C:\\Users\\LIUJF\\Desktop\\CDXMLTest\\cdxml2svg_Result\\ValidResult\\Brackets_Testing Data\\Corss bond data file\\cross_bond_1.svg");
-		configure();
+		//readCDXML("C:\\Users\\LIUJF\\Desktop\\CDXMLTest\\cdxml2svg_Result\\ValidResult\\Brackets_Testing Data\\Corss bond data file\\cross_bond_1.cdxml");
+		//readSVG("C:\\Users\\LIUJF\\Desktop\\CDXMLTest\\cdxml2svg_Result\\ValidResult\\Brackets_Testing Data\\Corss bond data file\\cross_bond_1.svg");
+		readCDXML("C:\\Users\\LIUJF\\Desktop\\CDXMLTest\\Benzene.cdxml");
+		readSVG("C:\\Users\\LIUJF\\Desktop\\CDXMLTest\\Benzene.svg");
+		parseCDXML();
 		
 		svg.getDocumentElement().normalize();
 		//Element root = svg.getDocumentElement();
 		NodeList nList = svg.getChildNodes();
-		//printNote(nList);
+		parseSVG(nList);
+		validate();
 		//System.out.println(root.getNodeName()+":"+root.getNodeValue());
 		
-		// Show
-//		SwingDemo canvas = new SwingDemo();
-//		JFrame window = new JFrame("CDXML");
-//		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//		window.setBounds(30,30,1000,1000);
-//		window.getContentPane().add(canvas);
-//		window.setVisible(true);
 		
 		// Create a new JFrame.
-//		myFrame f = (myFrame) new JFrame("Batik");
-		JFrame f = new JFrame("Batik"){
-			@Override
-			public void paint(Graphics g){
-				super.paint(g);
-				g.drawRect((int)Double.parseDouble(boundingBox.getStartPoint().getX()), (int)Double.parseDouble(boundingBox.getStartPoint().getY()), 
-						(int)Double.parseDouble(boundingBox.getEndPoint().getX()),(int)Double.parseDouble(boundingBox.getEndPoint().getY()));
-				
-			}
-		};
-        SwingDemo app = new SwingDemo(f);
-
-        // Add components to the frame.
-        f.getContentPane().add(app.createComponents());
-
-        // Display the frame.
-        f.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                System.exit(0);
-            }
-        });
-        f.setSize(500, 500);
-        f.setVisible(true);
-        
-//        Graphics g = null;
-//        g.drawRect((int)Double.parseDouble(boundingBox.getStartPoint().getX()), (int)Double.parseDouble(boundingBox.getStartPoint().getY()), 
-//				(int)Double.parseDouble(boundingBox.getEndPoint().getX()),(int)Double.parseDouble(boundingBox.getEndPoint().getY()));
-//        f.paint(g);
+//		JFrame f = new JFrame("Batik"){
+//			@Override
+//			public void paint(Graphics g){
+//				super.paint(g);
+//				g.drawRect((int)Double.parseDouble(boundingBox.getStartPoint().getX()), (int)Double.parseDouble(boundingBox.getStartPoint().getY()), 
+//						(int)Double.parseDouble(boundingBox.getEndPoint().getX()),(int)Double.parseDouble(boundingBox.getEndPoint().getY()));
+//				
+//			}
+//		};
+//        SwingDemo app = new SwingDemo(f);
+//
+//        // Add components to the frame.
+//        f.getContentPane().add(app.createComponents());
+//
+//        // Display the frame.
+//        f.addWindowListener(new WindowAdapter() {
+//            public void windowClosing(WindowEvent e) {
+//                System.exit(0);
+//            }
+//        });
+//        f.setSize(500, 500);
+//        f.setVisible(true);
 		
 		
 

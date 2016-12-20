@@ -1,15 +1,15 @@
 package demo;
 
-import generated.CDXML;
-import generated.Fragment;
-import generated.N;
-
 import java.io.File;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+
+import cdxml.dom.CDXML;
+import cdxml.dom.Fragment;
+import cdxml.dom.N;
 
 public class CDXMLTest {
 	

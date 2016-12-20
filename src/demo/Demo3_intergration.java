@@ -1,13 +1,5 @@
 package demo;
 
-import generated.B;
-import generated.CDXML;
-import generated.Fragment;
-import generated.N;
-import utils.BoundingBox;
-import utils.Line;
-import utils.Point;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,6 +18,14 @@ import org.apache.batik.dom.GenericDOMImplementation;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import cdxml.dom.B;
+import cdxml.dom.CDXML;
+import cdxml.dom.Fragment;
+import cdxml.dom.N;
+import deprecated.BoundingBox;
+import deprecated.Line;
+import deprecated.Point;
 
 
 
@@ -68,10 +68,10 @@ public class Demo3_intergration {
 			Solid.setAttribute("id", "Solid");
 			
 			Element Line = doc.createElement("line");
-			Line.setAttribute("x1", LList.get(i).getStartPoint().getX());
-			Line.setAttribute("y1", LList.get(i).getStartPoint().getY());
-			Line.setAttribute("x2", LList.get(i).getEndPoint().getX());
-			Line.setAttribute("y2", LList.get(i).getEndPoint().getY());
+			Line.setAttribute("x1", LList.get(i).getStartPoint().getX()+"");
+			Line.setAttribute("y1", LList.get(i).getStartPoint().getY()+"");
+			Line.setAttribute("x2", LList.get(i).getEndPoint().getX()+"");
+			Line.setAttribute("y2", LList.get(i).getEndPoint().getY()+"");
 			Line.setAttribute("stroke", "rgb(0,0,0)");
 			Line.setAttribute("stroke-width", "1");
 			Line.setAttribute("shape-rendering", "auto");
