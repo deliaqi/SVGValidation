@@ -12,7 +12,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.swing.*;
 import javax.xml.bind.JAXBException;
@@ -40,7 +44,7 @@ import cdxml.dom.Fragment;
 import cdxml.dom.N;
 import cdxml.parser.CDXMLParser;
 import cdxml.utils.BoundingBox;
-import cdxml.utils.Line;
+import common.utils.Line;
 import common.utils.Point;
 import svg.utils.Path;
 import cdxml.dom.Page;
@@ -110,7 +114,7 @@ public class SwingDemo{
         });
 
         // Set the JSVGCanvas listeners.
-/*        svgCanvas.addSVGDocumentLoaderListener(new SVGDocumentLoaderAdapter() {
+        svgCanvas.addSVGDocumentLoaderListener(new SVGDocumentLoaderAdapter() {
             public void documentLoadingStarted(SVGDocumentLoaderEvent e) {
                 label.setText("Document Loading...");
             }
@@ -137,7 +141,7 @@ public class SwingDemo{
                 label.setText("");
             }
         });
-*/
+
         return panel;
     }
 	
@@ -146,15 +150,13 @@ public class SwingDemo{
 	//private static BoundingBox boundingBox;
 	private static Document svg;
 	private static List<Path> pathList = new ArrayList<Path>();
-	private static String CDXML_DOM_N = "cdxml.dom.N";
-	private static String CDXML_DOM_B = "cdxml.dom.B";
 	
 	// Attribute in CDXML
 	private static CDXMLParser cdxmlParser = new CDXMLParser();
 	private static int NCount = 6;
 	public static List<Object> NList = null;
-	public static List<Point> PList = new ArrayList<Point>();
-	public static List<Line> LList = new ArrayList<Line>();
+	public static List<Point> cdxmlPoints = new ArrayList<Point>();
+	public static List<Line> cdxmlLines = new ArrayList<Line>();
 	
 	// Result SVG
 	private static DOMImplementation impl = GenericDOMImplementation.getDOMImplementation();
@@ -163,13 +165,13 @@ public class SwingDemo{
 	private static Element resultRoot = resultSVG.getDocumentElement();
 	private static String COLOR_RIGHT = "rgb(133, 238, 176)";
 	private static String COLOR_WRONG = "";
+	private static Set svgPoints = new HashSet();
 	
 
 	private static void readCDXML(String path){
 		try {
 			cdxml = CDXMLTest.readString(CDXML.class, path);
 		} catch (JAXBException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -188,85 +190,33 @@ public class SwingDemo{
 		}
 	}
 	
-	private static void validate(){
-		if(pathList != null && PList != null){
-			System.out.println("Validate points:");
-			for(int i=0;i<pathList.size();i++){
-				Path p = pathList.get(i);
-				boolean right_start = false,right_end = false;
-				for(int j=0;j<PList.size();j++){
-					if(p.getPointList().size()>=Path.POINT_COUNT){
-						if((p.getPointList().get(1).getX() == PList.get(j).getX()) && (p.getPointList().get(1).getY() == PList.get(j).getY())){
-							right_start = true;
-						}
-						if((p.getPointList().get(4).getX() == PList.get(j).getX()) && (p.getPointList().get(4).getY() == PList.get(j).getY())){
-							right_end = true;						
-						}
-						if(right_start && right_end){
-							System.out.println(p.getPointList().get(1).getX()+"," + p.getPointList().get(1).getY()
-									+ "-" + p.getPointList().get(4).getX()+","+p.getPointList().get(4).getY());
-							right_start = false;
-							right_end = false;
-						}
-					}
-				}
-			}
-		}
-	}
-	
 	
 	private static void parseCDXML(){
         if(cdxml == null) return;
 
-        // Configure BoundingBox
-//        if(cdxml.getBoundingBox() != null){
-//            
-//            String[] boundingBoxData =  cdxml.getBoundingBox().split(" ");
-//           
-//            Point startpoint = new Point(Double.parseDouble(boundingBoxData[0]), Double.parseDouble(boundingBoxData[1]));
-//            Point endpoint = new Point(Double.parseDouble(boundingBoxData[2]), Double.parseDouble(boundingBoxData[3]));
-//            
-//            boundingBox = new BoundingBox(startpoint, endpoint);
-//        }
         List<Page> pagelist = cdxml.getPage();
         for(int i=0;i<pagelist.size();i++){
         	cdxmlParser.parsePage(pagelist.get(i));
         }
         
-        // Set N List in CDXML
-//     	List<Object> fragmentlist = cdxml.getPage().get(0).getTOrFragmentOrGroup();
-//     	//for(Object possibleFragment : page.getTOrFragmentOrGroup())
-//     	Fragment f = Fragment.class.cast(fragmentlist.get(0));
-//     	NList = f.getNOrBOrT();
-//     	NCount = NList.size();
-//     		
-//     	// Set Point List and Line List
-//     	for(int i=0;i<NCount;i++){
-//     		String curName = NList.get(i).getClass().getName();
-//     		if(NList.get(i) instanceof N){
-//     			Point curP = new Point();
-//     			N n = N.class.cast(NList.get(i));
-//     			String p = n.getP();
-//     			String[] str = p.split(" ",2);
-//     			if(str.length >= 2){
-//     				curP = new Point(n.getId(), Double.parseDouble(str[0]), Double.parseDouble(str[1]));
-//     			}
-//     			PList.add(curP);
-//     		}else if( NList.get(i) instanceof B){
-//     			B b = B.class.cast(NList.get(i));
-//     			Line line = new Line();
-//     			for(int j=0;j<PList.size();j++){
-//     				if(b.getB().equals(PList.get(j).getId())){
-//     					line.setStartPoint(PList.get(j));
-//     				}else if(b.getE().equals(PList.get(j).getId())){
-//     					line.setEndPoint(PList.get(j));
-//     				}
-//     			}
-//     			if(line.isValid()){
-//     				LList.add(line);
-//     			}
-//     		}
-//     	}
+	}
+	
+	private void parseSVG(){
+		NodeList pathlist = svg.getElementsByTagName("path");
+		for(int i=0;i<pathlist.getLength();i++){
+			NamedNodeMap nodeMap = pathlist.item(i).getAttributes();
+			Node dnode = nodeMap.getNamedItem("d");
+			Path p = new Path(dnode.getNodeValue());
+			if(p.getPointList().size()>=Path.POINT_COUNT){
+				Point startpoint = p.getPointList().get(1);
+				Point endpoint = p.getPointList().get(4);
+				Line line = new Line(startpoint, endpoint);
+				if(!svgPoints.contains(startpoint)){
+					svgPoints.add(startpoint);
+				}
+				
+			}
+		}
 	}
 	
 	
@@ -328,19 +278,24 @@ public class SwingDemo{
 					Node dnode = nodeMap.getNamedItem("d");
 					Node colornode = nodeMap.getNamedItem("fill");
 					Path p = new Path(dnode.getNodeValue());
-					for(int j=0;j<PList.size();j++){
+					//Line line = new Line();
+					for(int j=0;j<cdxmlPoints.size();j++){
 						if(p.getPointList().size()>=Path.POINT_COUNT){
-							if((p.getPointList().get(1).getX() == PList.get(j).getX()) && (p.getPointList().get(1).getY() == PList.get(j).getY())){
+							if((p.getPointList().get(1).getX() == cdxmlPoints.get(j).getX()) && (p.getPointList().get(1).getY() == cdxmlPoints.get(j).getY())){
 								right_start = true;
+								//line.setStartPoint(p.getPointList().get(1));
 							}
-							if((p.getPointList().get(4).getX() == PList.get(j).getX()) && (p.getPointList().get(4).getY() == PList.get(j).getY())){
-								right_end = true;						
+							if((p.getPointList().get(4).getX() == cdxmlPoints.get(j).getX()) && (p.getPointList().get(4).getY() == cdxmlPoints.get(j).getY())){
+								right_end = true;	
+								//line.setEndPoint(p.getPointList().get(4));
 							}
 							if(right_start && right_end){
 								System.out.println(p.getPointList().get(1).getX()+"," + p.getPointList().get(1).getY()
 										+ "-" + p.getPointList().get(4).getX()+","+p.getPointList().get(4).getY());
 								colornode.setNodeValue(COLOR_RIGHT);
 								break;
+							}else{
+								//colornode.setNodeValue(COLOR_RIGHT);
 							}
 						}
 					}
@@ -369,40 +324,23 @@ public class SwingDemo{
 
 
 	public static void main(String[] args){
-		// Read CDXML
+		// Read CDXML and SVG
 		//readCDXML("C:\\Users\\LIUJF\\Desktop\\CDXMLTest\\cdxml2svg_Result\\ValidResult\\Brackets_Testing Data\\Corss bond data file\\cross_bond_1.cdxml");
 		//readSVG("C:\\Users\\LIUJF\\Desktop\\CDXMLTest\\cdxml2svg_Result\\ValidResult\\Brackets_Testing Data\\Corss bond data file\\cross_bond_1.svg");
 		readCDXML("C:\\Users\\LIUJF\\Desktop\\CDXMLTest\\all_tags_dsk.cdxml");
 		readSVG("C:\\Users\\LIUJF\\Desktop\\CDXMLTest\\[DSK]all_tags_118(3).svg");
+		//readCDXML("C:\\Users\\LIUJF\\Desktop\\CDXMLTest\\8.cdxml");
+		//readSVG("C:\\Users\\LIUJF\\Desktop\\CDXMLTest\\8.svg");
 		parseCDXML();
 		
         svg.getDocumentElement().normalize();
-		//Element root = svg.getDocumentElement();
-		NodeList nList = svg.getChildNodes();
-        //NodeList nList = svg.getElementsByTagName("path");
-		//printSVG(nList);
-        //parseSVG(svg);
-		//validate();
-		
-		//Element root = svg.getDocumentElement();
-		//validateSVG();
 		
 		// Write result to SVG
 		validateSVG(svg.getFirstChild());
-//		Node copyNode = resultSVG.importNode(rootNode, true);
-//		resultSVG.getDocumentElement().appendChild(copyNode);
 		resultCanvas.setDocument(svg);
 		
 		// Create a new JFrame.
-		JFrame f = new JFrame("Batik"){
-//			@Override
-//			public void paint(Graphics g){
-//				super.paint(g);
-//				g.drawRect((int)Double.parseDouble(boundingBox.getStartPoint().getX()), (int)Double.parseDouble(boundingBox.getStartPoint().getY()), 
-//						(int)Double.parseDouble(boundingBox.getEndPoint().getX()),(int)Double.parseDouble(boundingBox.getEndPoint().getY()));
-//				
-//			}
-		};
+		JFrame f = new JFrame("Batik");
         SwingDemo app = new SwingDemo(f);
 
         // Add components to the frame.

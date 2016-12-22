@@ -1,9 +1,13 @@
 package common.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Point {
 	private String id;
 	private double x;
 	private double y;
+	private List<Line> lineList = new ArrayList<Line>();
 	
 	public Point(String id, double x, double y) {
 		super();
@@ -36,6 +40,12 @@ public class Point {
 	}
 	public void setId(String id) {
 		this.id = id;
+	}
+	public List<Line> getLineList() {
+		return lineList;
+	}
+	public void setLineList(List<Line> lineList) {
+		this.lineList = lineList;
 	}
 
 }

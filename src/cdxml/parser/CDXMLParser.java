@@ -23,6 +23,7 @@ import cdxml.dom.Stoichiometrygrid;
 import cdxml.dom.T;
 import cdxml.dom.Table;
 import cdxml.dom.Tlcplate;
+import common.utils.Line;
 import common.utils.Point;
 import demo.SwingDemo;
 
@@ -219,8 +220,17 @@ public class CDXMLParser {
 	}
 
 	private void parseBond(B bond) {
-		// TODO Auto-generated method stub
-		
+		Line line = new Line();
+		for(int i=0;i<SwingDemo.cdxmlPoints.size();i++){
+			if(bond.getB().equals(SwingDemo.cdxmlPoints.get(i).getId())){
+				line.setStartPoint(SwingDemo.cdxmlPoints.get(i));
+			}else if(bond.getE().equals(SwingDemo.cdxmlPoints.get(i).getId())){
+				line.setEndPoint(SwingDemo.cdxmlPoints.get(i));
+			}
+		}
+		if(line.isValid()){
+			SwingDemo.cdxmlLines.add(line);
+		}
 	}
 
 	private void parseNode(N node) {
@@ -230,7 +240,7 @@ public class CDXMLParser {
 		if(str.length >= 2){
 			point = new Point(node.getId(), Double.parseDouble(str[0]), Double.parseDouble(str[1]));
 		}
-		SwingDemo.PList.add(point);
+		SwingDemo.cdxmlPoints.add(point);
 	}
 
 	private void parseBorder(Border border) {
